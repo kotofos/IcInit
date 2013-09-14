@@ -2045,9 +2045,21 @@
     <name>Sources</name>
     <file>
       <name>$PROJ_DIR$\..\Sources\init.c</name>
+      <excluded>
+        <configuration>Debug</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\Sources\init.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Sources\main.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Sources\main.h</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Sources\stat.h</name>
     </file>
     <file>
       <name>$PROJ_DIR$\..\Sources\stm32f10x.h</name>
@@ -2063,20 +2075,14 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\Sources\zacwire.c</name>
+      <excluded>
+        <configuration>Debug</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\Sources\zacwire.h</name>
     </file>
   </group>
-  <file>
-    <name>$PROJ_DIR$\..\Sources\main.cpp</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\Sources\main.h</name>
-  </file>
-  <file>
-    <name>$PROJ_DIR$\..\Sources\stat.h</name>
-  </file>
 </project>
 
 
