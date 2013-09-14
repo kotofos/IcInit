@@ -7,7 +7,7 @@ void test(void) {
     return;
 }
 
-void delayMs(uint32_t ms);
+void delayMs(uint32_t ms, TIM_TypeDef* TIMx);
 uint32_t bitTim[50], bitTimCount = 1;
 int main()
 {
@@ -50,10 +50,24 @@ int main()
 //    TIM_ICInit(TIM1, &TIM_ICInitStructure);
 //    TIM_ITConfig(TIM1, TIM_EventSource_CC4, ENABLE);
     
+    //tim3 for delay
+    RCC_APB1PeriphClockCmd((RCC_APB1Periph_TIM3), ENABLE);
+    //TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+    TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
+    TIM_TimeBaseInitStructure.TIM_Prescaler = 72 - 1; //1 us
+    TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInitStructure.TIM_Period = 0xffff;
+    TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStructure);
+    
+    TIM_Cmd(TIM3, ENABLE);
+    
+    
     NVIC_EnableIRQ(TIM1_CC_IRQn);
        
     ZON;
-    delayMs(3);
+    delayMs(1000, TIM3);
     TIM_Cmd(TIM1, ENABLE);
     
     while (bitTimCount < 31) {};
@@ -68,10 +82,10 @@ void TIM1_CC_IRQHandler(void)
     ++bitTimCount;
 }
 
-void delayMs(uint32_t ms)
+void delayMs(uint32_t ms, TIM_TypeDef* TIMx)
 {
     for(uint32_t i = 0; i<ms; i++){
-        TIM_SetCounter(TIM1, 0);
-        while((TIM_GetCounter(TIM1)) < 999);
+        TIM_SetCounter(TIMx, 0);
+        while((TIM_GetCounter(TIMx)) < 999);
     }
 }
