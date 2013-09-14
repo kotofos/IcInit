@@ -15,7 +15,7 @@ void ZacReadBrTemp(uint8_t rate, uint16_t samplesCount);
 uint16_t bridgeDigital;
 uint8_t temp;
 uint8_t tmp;
-uint16_t  brMid;
+uint16_t brMid;
 double height;
 static uint8_t err;
 static uint32_t retries;
