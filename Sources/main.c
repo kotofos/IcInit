@@ -11,10 +11,81 @@ void test(void) {
 }
 void setEdge(uint16_t pol);
 void delayMs(uint32_t ms, TIM_TypeDef* TIMx);
+void initAll(void);
 uint32_t bitTim[50], bitTimCount = 0;
 int main()
+{    
+    initAll();
+    ZON;
+    delayMs(3, TIM3);
+    
+
+    TIM_ITConfig(TIM1, TIM_EventSource_CC4, ENABLE);
+    TIM_Cmd(TIM1, ENABLE);
+       int a = TIM_GetITStatus(TIM1, TIM_IT_Update);//флаг сброшен, но прерыванеи происходит
+       ZOFF;
+    NVIC_EnableIRQ(TIM1_CC_IRQn);//сразу же после разрешения происходит прерывание
+    delayMs(1, TIM3);
+    NVIC_DisableIRQ(TIM1_CC_IRQn);
+    delayMs(1, TIM3);
+    NVIC_EnableIRQ(TIM1_CC_IRQn);
+    
+    TIM_SetCounter(TIM1, 0);
+    while (bitTimCount < 29) {};
+    NVIC_DisableIRQ(TIM1_CC_IRQn);
+    delayMs(3, TIM3);
+    NVIC_EnableIRQ(TIM1_CC_IRQn);
+    
+    ZOFF;
+}
+
+void TIM1_CC_IRQHandler(void) 
+{ 
+    GPIO_SetBits(GPIOA, GPIO_Pin_8);
+    int a = TIM_GetITStatus(TIM1, TIM_IT_Update);
+    if(!n) {
+        capture_1 = TIM1->CCR4;
+        n = ~n;
+        setEdge(TIM_ICPolarity_Rising);
+    }
+    else
+    {
+        capture_2 = TIM1->CCR4;
+        period = capture_2 - capture_1;
+        n = ~n;
+        bitTim[bitTimCount] = period;
+        ++bitTimCount;
+        setEdge(TIM_ICPolarity_Falling);
+        
+    }
+    GPIO_ResetBits(GPIOA, GPIO_Pin_8);
+    
+}
+
+void delayMs(uint32_t ms, TIM_TypeDef* TIMx)
+{
+    for(uint32_t i = 0; i<ms; i++){
+        TIM_SetCounter(TIMx, 0);
+        while((TIM_GetCounter(TIMx)) < 999);
+    }
+}
+
+void setEdge(uint16_t pol)
+{
+    TIM_ICInitTypeDef TIM_ICInitStructure;
+    TIM_ICStructInit(&TIM_ICInitStructure);
+    TIM_ICInitStructure.TIM_Channel = TIM_Channel_4;
+    TIM_ICInitStructure.TIM_ICFilter = 0xf;
+    TIM_ICInitStructure.TIM_ICPolarity = pol;
+    TIM_ICInitStructure.TIM_ICPrescaler = 0x0;
+    TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI; 
+    TIM_ICInit(TIM1, &TIM_ICInitStructure);
+}
+
+void initAll(void)
 {
     SystemInit();
+    
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB, ENABLE);
     GPIO_InitTypeDef GPIO_InitStructure;
     //data
@@ -51,8 +122,7 @@ int main()
     TIM_TimeBaseInit(TIM1, &TIM_TimeBaseInitStructure);
     
     setEdge(TIM_ICPolarity_Falling);
-    TIM_ITConfig(TIM1, TIM_EventSource_CC4, ENABLE);
-       TIM_Cmd(TIM1, ENABLE);
+    
     
     //tim3 for delay
     RCC_APB1PeriphClockCmd((RCC_APB1Periph_TIM3), ENABLE);
@@ -65,58 +135,4 @@ int main()
     TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStructure);
     TIM_Cmd(TIM3, ENABLE);
-    
-    ZON;
-    delayMs(3, TIM3);
-  
-    TIM_ClearFlag(TIM1, TIM_FLAG_CC4);
-    TIM_ClearITPendingBit(TIM1, TIM_IT_CC4|TIM_IT_CC3|TIM_IT_CC2|TIM_IT_CC1);
-    //ZOFF;//почему записть 0 в порт сбрасывает флаг захвата?
-    NVIC_EnableIRQ(TIM1_CC_IRQn);//сразу же после разрешения происходит прерывание
-    
-    TIM_SetCounter(TIM1, 0);
-    while (bitTimCount < 30) {};
-    ZOFF;
-}
-
-void TIM1_CC_IRQHandler(void) 
-{ 
-    GPIO_SetBits(GPIOA, GPIO_Pin_8);
-        if(!n)
-        {
-            
-            capture_1 = TIM1->CCR4;
-            n = ~n;
-        }
-        else
-        {
-            capture_2 = TIM1->CCR4;
-            period = capture_2 - capture_1;
-            n = ~n;
-            bitTim[bitTimCount] = period;
-            ++bitTimCount;
-            
-        }
-        GPIO_ResetBits(GPIOA, GPIO_Pin_8);
-    
-}
-
-void delayMs(uint32_t ms, TIM_TypeDef* TIMx)
-{
-    for(uint32_t i = 0; i<ms; i++){
-        TIM_SetCounter(TIMx, 0);
-        while((TIM_GetCounter(TIMx)) < 999);
-    }
-}
-
-void setEdge(uint16_t pol)
-{
-    TIM_ICInitTypeDef TIM_ICInitStructure;
-    TIM_ICStructInit(&TIM_ICInitStructure);
-    TIM_ICInitStructure.TIM_Channel = TIM_Channel_4;
-    TIM_ICInitStructure.TIM_ICFilter = 0xf;
-    TIM_ICInitStructure.TIM_ICPolarity = pol;
-    TIM_ICInitStructure.TIM_ICPrescaler = 0x0;
-    TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI; 
-    TIM_ICInit(TIM1, &TIM_ICInitStructure);
 }
